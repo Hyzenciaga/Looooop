@@ -157,6 +157,38 @@ describe('StateMachine', () => {
     })
   })
 
+  describe('model tracking', () => {
+    it('updateModel emits MODEL_CHANGED delta', () => {
+      machine.initSession('s1', '/project')
+      emittedDeltas.length = 0
+
+      machine.updateModel('s1', 'claude-sonnet-4-6')
+
+      expect(machine.getState().sessions['s1'].currentModel).toBe('claude-sonnet-4-6')
+      expect(emittedDeltas[0]).toEqual({
+        type: 'MODEL_CHANGED',
+        sessionId: 's1',
+        model: 'claude-sonnet-4-6',
+      })
+    })
+  })
+
+  describe('title tracking', () => {
+    it('updateTitle emits SESSION_TITLE delta', () => {
+      machine.initSession('s1', '/project')
+      emittedDeltas.length = 0
+
+      machine.updateTitle('s1', 'Fix auth bug')
+
+      expect(machine.getState().sessions['s1'].title).toBe('Fix auth bug')
+      expect(emittedDeltas[0]).toEqual({
+        type: 'SESSION_TITLE',
+        sessionId: 's1',
+        title: 'Fix auth bug',
+      })
+    })
+  })
+
   describe('full sync', () => {
     it('getFullSync returns FULL_SYNC delta with complete state', () => {
       machine.initSession('s1', '/project')
