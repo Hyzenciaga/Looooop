@@ -5,5 +5,8 @@
     "rootDir": "src",
     "module": "ESNext"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    { "path": "../shared" }
+  ]
 }
