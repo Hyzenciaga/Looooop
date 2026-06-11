@@ -13,21 +13,21 @@ export class IPCBridge {
   }
 
   sendStreamFrame(frame: StreamFrame): void {
-    process.parentPort?.postMessage({ type: 'stream-frame', payload: frame })
+    process.parentPort!.postMessage({ type: 'stream-frame', payload: frame })
   }
 
   sendStateDelta(delta: StateDelta): void {
-    process.parentPort?.postMessage({ type: 'state-delta', payload: delta })
+    process.parentPort!.postMessage({ type: 'state-delta', payload: delta })
   }
 
   sendPermissionRequest(request: PermissionRequest): void {
-    process.parentPort?.postMessage({
+    process.parentPort!.postMessage({
       type: 'permission-request',
       payload: request,
     })
   }
 
   onMessage(callback: (msg: { type: string; payload: unknown }) => void): void {
-    process.parentPort?.on('message', callback)
+    process.parentPort!.on('message', callback)
   }
 }
