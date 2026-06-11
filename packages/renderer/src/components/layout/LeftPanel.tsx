@@ -4,6 +4,7 @@ export function LeftPanel() {
   const sessions = useSessionStore((s) => s.sessions)
   const activeSessionId = useSessionStore((s) => s.activeSessionId)
   const setActiveSession = useSessionStore((s) => s.setActiveSession)
+  const initSession = useSessionStore((s) => s.initSession)
 
   const sessionList = Object.values(sessions).sort(
     (a, b) => b.lastActivity - a.lastActivity
@@ -63,7 +64,7 @@ export function LeftPanel() {
         <button
           onClick={() => {
             const id = crypto.randomUUID()
-            // Initialize session via IPC — runtime will create it on first message
+            initSession(id)
             setActiveSession(id)
           }}
           className="w-full py-2 px-3 bg-accent text-white rounded-md text-sm font-medium hover:bg-accent/90 transition-colors"

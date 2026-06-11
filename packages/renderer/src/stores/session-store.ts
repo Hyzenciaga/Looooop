@@ -7,6 +7,7 @@ interface SessionStore {
 
   // Actions (called by useStateSync hook)
   setSessions: (sessions: Record<string, SessionState>) => void
+  initSession: (sessionId: string) => void
   updateStatus: (sessionId: string, status: SessionState['status']) => void
   appendMessage: (sessionId: string, summary: MessageSummary) => void
   setActiveSession: (sessionId: string) => void
@@ -21,6 +22,22 @@ export const useSessionStore = create<SessionStore>((set) => ({
   activeSessionId: null,
 
   setSessions: (sessions) => set({ sessions }),
+
+  initSession: (sessionId) =>
+    set((state) => ({
+      sessions: {
+        ...state.sessions,
+        [sessionId]: {
+          id: sessionId,
+          status: 'idle',
+          messages: [],
+          activeStreamIds: [],
+          costUsd: 0,
+          projectPath: '',
+          lastActivity: Date.now(),
+        },
+      },
+    })),
 
   updateStatus: (sessionId, status) =>
     set((state) => ({

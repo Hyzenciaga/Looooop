@@ -5,10 +5,13 @@ export function MessageList({ sessionId }: { sessionId: string }) {
   const session = useSessionStore((s) => s.sessions[sessionId])
   const streams = useStreamStore((s) => s.streams)
 
-  // Get messages from active streams for this session
-  const activeMessages = Object.values(streams)
-    .filter((s) => s.sessionId === sessionId)
-    .flatMap((s) => s.messages)
+  // Get messages from active (non-done) streams for this session
+  const activeStreams = Object.values(streams).filter(
+    (s) => s.sessionId === sessionId && s.status !== 'done'
+  )
+  const activeMessages = activeStreams.flatMap((s) =>
+    s.messages.map((msg, i) => ({ msg, streamId: s.streamId, index: i }))
+  )
 
   const sessionMessages = session?.messages ?? []
 
@@ -25,8 +28,8 @@ export function MessageList({ sessionId }: { sessionId: string }) {
       ))}
 
       {/* Streaming messages */}
-      {activeMessages.map((msg, i) => (
-        <div key={`stream-${i}`} className="streaming-message">
+      {activeMessages.map(({ msg, streamId, index }) => (
+        <div key={`${streamId}-${index}`} className="streaming-message">
           <div className="text-xs text-text-secondary mb-1">
             {msg.type}
           </div>
@@ -37,7 +40,7 @@ export function MessageList({ sessionId }: { sessionId: string }) {
                     {block.type === 'text' ? block.text : `[${block.type}]`}
                   </span>
                 ))
-              : JSON.stringify(msg)}
+              : `[${msg.type}]`}
           </div>
         </div>
       ))}

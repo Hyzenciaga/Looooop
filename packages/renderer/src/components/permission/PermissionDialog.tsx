@@ -6,7 +6,10 @@ export function PermissionDialog() {
   if (pending.length === 0) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={(e) => e.target === e.currentTarget && e.preventDefault()}
+    >
       <div className="bg-bg-secondary rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <h3 className="text-lg font-semibold text-text-primary mb-4">
           Permission Required
