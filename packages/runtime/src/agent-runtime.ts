@@ -1,4 +1,4 @@
-import type { StreamFrame } from '../../shared/src/ipc-stream'
+import type { StreamFrame, StreamCommand } from '../../shared/src/ipc-stream'
 import type { PermissionDecision } from '../../shared/src/permission'
 import type { Options } from '@anthropic-ai/claude-agent-sdk'
 import { DecisionQueue } from './decision-queue'
@@ -42,11 +42,7 @@ export class AgentRuntime {
       switch (msg.type) {
         case 'command':
           await this.handleCommand(
-            msg.payload as {
-              sessionId: string
-              kind: string
-              payload?: { prompt?: string }
-            }
+            msg.payload as StreamCommand
           )
           break
         case 'permission-response':
@@ -61,11 +57,7 @@ export class AgentRuntime {
     this.ipcBridge.sendStateDelta(this.stateMachine.getFullSync())
   }
 
-  private async handleCommand(command: {
-    sessionId: string
-    kind: string
-    payload?: { prompt?: string }
-  }): Promise<void> {
+  private async handleCommand(command: StreamCommand): Promise<void> {
     switch (command.kind) {
       case 'start': {
         if (!command.payload?.prompt) return

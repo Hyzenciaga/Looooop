@@ -69,7 +69,7 @@ export class SDKService {
                 requestId,
                 toolName,
                 toolInput,
-              } as unknown as SDKMessage,
+              },
             })
 
             this.stateMachine.updateStatus(sessionId, 'waiting_permission')
