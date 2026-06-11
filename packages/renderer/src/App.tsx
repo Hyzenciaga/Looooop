@@ -1,7 +1,17 @@
+import { AppShell } from './components/layout/AppShell'
+import { useStateSync } from './hooks/useStateSync'
+import { useStreamSubscription } from './hooks/useAgentStream'
+import { PermissionDialog } from './components/permission/PermissionDialog'
+
 export function App() {
+  // Wire up state synchronization
+  useStateSync()
+  useStreamSubscription()
+
   return (
-    <div className="h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold">Looooop</h1>
-    </div>
+    <>
+      <AppShell />
+      <PermissionDialog />
+    </>
   )
 }
