@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useSessionStore } from '../stores/session-store'
 import { useStreamStore } from '../stores/stream-store'
 import type { StreamCommand, StreamFrame } from '../../../shared/src/ipc-stream'
@@ -25,7 +25,7 @@ export function useAgentStream(sessionId: string) {
       ? 'streaming'
       : session?.status === 'error'
         ? 'error'
-        : session?.activeStreamIds?.length ?? 0 > 0
+        : (session?.activeStreamIds?.length ?? 0) > 0
           ? 'streaming'
           : 'idle'
 
@@ -75,9 +75,8 @@ export function useStreamSubscription() {
   const markDone = useStreamStore((s) => s.markDone)
   const markError = useStreamStore((s) => s.markError)
 
-  // Subscribe once
-  useCallback(() => {
-    window.api.onStreamFrame((frame: StreamFrame) => {
+  useEffect(() => {
+    const unsubscribe = window.api.onStreamFrame((frame: StreamFrame) => {
       switch (frame.kind) {
         case 'chunk':
           addChunk(frame as StreamFrame<SDKMessage>)
@@ -90,5 +89,6 @@ export function useStreamSubscription() {
           break
       }
     })
-  }, [addChunk, markDone, markError])()
+    return unsubscribe
+  }, [addChunk, markDone, markError])
 }
