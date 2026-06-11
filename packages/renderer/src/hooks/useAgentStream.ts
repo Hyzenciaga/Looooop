@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useSessionStore } from '../stores/session-store'
 import { useStreamStore } from '../stores/stream-store'
 import type { StreamCommand, StreamFrame } from '../../../shared/src/ipc-stream'
@@ -10,15 +10,19 @@ import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk'
  */
 export function useAgentStream(sessionId: string) {
   const session = useSessionStore((s) => s.sessions[sessionId])
-  const streams = useStreamStore((s) => s.streams)
-  const addChunk = useStreamStore((s) => s.addChunk)
-  const markDone = useStreamStore((s) => s.markDone)
-  const markError = useStreamStore((s) => s.markError)
 
-  // Collect messages from all active streams for this session
-  const messages = Object.values(streams)
-    .filter((s) => s.sessionId === sessionId)
-    .flatMap((s) => s.messages)
+  // Narrow selector: only subscribe to streams for this session
+  const sessionStreams = useStreamStore(
+    useCallback(
+      (s) =>
+        Object.values(s.streams).filter((st) => st.sessionId === sessionId),
+      [sessionId]
+    )
+  )
+  const messages = useMemo(
+    () => sessionStreams.flatMap((s) => s.messages),
+    [sessionStreams]
+  )
 
   const status: 'idle' | 'streaming' | 'done' | 'error' =
     session?.status === 'running'
@@ -45,23 +49,18 @@ export function useAgentStream(sessionId: string) {
     [sessionId]
   )
 
+  // Read activeStreamIds from store at call-time to avoid unstable dependency
   const cancel = useCallback(() => {
-    if (session?.activeStreamIds) {
-      for (const streamId of session.activeStreamIds) {
-        window.api.sendCommand({
-          streamId,
-          sessionId,
-          kind: 'cancel',
-        })
+    const ids =
+      useSessionStore.getState().sessions[sessionId]?.activeStreamIds
+    if (ids?.length) {
+      for (const streamId of ids) {
+        window.api.sendCommand({ streamId, sessionId, kind: 'cancel' })
       }
     } else {
-      window.api.sendCommand({
-        streamId: '*',
-        sessionId,
-        kind: 'cancel',
-      })
+      window.api.sendCommand({ streamId: '*', sessionId, kind: 'cancel' })
     }
-  }, [sessionId, session?.activeStreamIds])
+  }, [sessionId])
 
   return { messages, status, send, cancel }
 }
@@ -79,7 +78,7 @@ export function useStreamSubscription() {
     const unsubscribe = window.api.onStreamFrame((frame: StreamFrame) => {
       switch (frame.kind) {
         case 'chunk':
-          addChunk(frame as StreamFrame<SDKMessage>)
+          if (frame.data) addChunk(frame as StreamFrame<SDKMessage>)
           break
         case 'done':
           markDone(frame.streamId)
